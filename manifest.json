@@ -1,0 +1,10 @@
+{
+  "id": "asset-swapper",
+  "name": "Asset Swapper",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Replaces remote asset URLs in the current note with local wikilinks by matching a vault folder with the same name as the note.",
+  "author": "yourpalmark",
+  "authorUrl": "https://github.com/yourpalmark",
+  "isDesktopOnly": false
+}
