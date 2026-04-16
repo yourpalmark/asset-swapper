@@ -1,1 +1,10 @@
 node_modules/
+
+# macOS
+.DS_Store
+
+# Obsidian plugin data (created at runtime in the vault)
+data.json
+
+# esbuild inline source maps are embedded in main.js; no separate .map files expected
+*.js.map
