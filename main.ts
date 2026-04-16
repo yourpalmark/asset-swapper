@@ -1,4 +1,5 @@
 import { Editor, MarkdownView, Notice, Plugin, TFile, TFolder } from 'obsidian';
+import { swapUrlsInContent } from './utils';
 
 export default class AssetSwapperPlugin extends Plugin {
   async onload() {
@@ -44,18 +45,7 @@ export default class AssetSwapperPlugin extends Plugin {
     }
 
     const content = editor.getValue();
-    let swapCount = 0;
-
-    // Match markdown image and link syntax: ![alt](url) and [text](url)
-    const newContent = content.replace(
-      /!?\[[^\]]*\]\(([^)]+)\)/g,
-      (match, url: string) => {
-        const filename = decodeFilenameFromUrl(url.trim());
-        if (!filename || !localFiles.has(filename)) return match;
-        swapCount++;
-        return `![[${filename}]]`;
-      }
-    );
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
 
     if (swapCount === 0) {
       new Notice('Asset Swapper: no matching assets found to swap.');
@@ -65,34 +55,4 @@ export default class AssetSwapperPlugin extends Plugin {
     editor.setValue(newContent);
     new Notice(`Asset Swapper: swapped ${swapCount} asset${swapCount !== 1 ? 's' : ''}.`);
   }
-}
-
-/**
- * Extracts and URL-decodes the filename from the last path segment of a URL.
- * Returns null if the URL is not parseable or has no usable filename.
- * Mirrors the logic in Asset Clipper's lib/utils.js.
- */
-function decodeFilenameFromUrl(url: string): string | null {
-  try {
-    const parsed = new URL(url);
-    const pathParts = parsed.pathname.split('/');
-    let raw = pathParts[pathParts.length - 1];
-    if (!raw) return null;
-
-    raw = decodeURIComponent(raw);
-    raw = raw.replace(/[?#].*$/, '');
-
-    if (!raw || raw.length < 2) return null;
-
-    return sanitiseFilename(raw);
-  } catch {
-    return null;
-  }
-}
-
-function sanitiseFilename(filename: string): string {
-  return filename
-    .replace(/[/\\:*?"<>|]/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim();
 }

@@ -23,6 +23,43 @@ __export(main_exports, {
 });
 module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
+
+// utils.ts
+function swapUrlsInContent(content, localFiles) {
+  let swapCount = 0;
+  const newContent = content.replace(
+    /!?\[[^\]]*\]\(([^)]+)\)/g,
+    (match, url) => {
+      const filename = decodeFilenameFromUrl(url.trim());
+      if (!filename || !localFiles.has(filename))
+        return match;
+      swapCount++;
+      return `![[${filename}]]`;
+    }
+  );
+  return { newContent, swapCount };
+}
+function decodeFilenameFromUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const pathParts = parsed.pathname.split("/");
+    let raw = pathParts[pathParts.length - 1];
+    if (!raw)
+      return null;
+    raw = decodeURIComponent(raw);
+    raw = raw.replace(/[?#].*$/, "");
+    if (!raw || raw.length < 2)
+      return null;
+    return sanitiseFilename(raw);
+  } catch (e) {
+    return null;
+  }
+}
+function sanitiseFilename(filename) {
+  return filename.replace(/[/\\:*?"<>|]/g, "-").replace(/\s+/g, " ").trim();
+}
+
+// main.ts
 var AssetSwapperPlugin = class extends import_obsidian.Plugin {
   async onload() {
     this.addCommand({
@@ -56,17 +93,7 @@ var AssetSwapperPlugin = class extends import_obsidian.Plugin {
       return;
     }
     const content = editor.getValue();
-    let swapCount = 0;
-    const newContent = content.replace(
-      /!?\[[^\]]*\]\(([^)]+)\)/g,
-      (match, url) => {
-        const filename = decodeFilenameFromUrl(url.trim());
-        if (!filename || !localFiles.has(filename))
-          return match;
-        swapCount++;
-        return `![[${filename}]]`;
-      }
-    );
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
     if (swapCount === 0) {
       new import_obsidian.Notice("Asset Swapper: no matching assets found to swap.");
       return;
@@ -75,22 +102,3 @@ var AssetSwapperPlugin = class extends import_obsidian.Plugin {
     new import_obsidian.Notice(`Asset Swapper: swapped ${swapCount} asset${swapCount !== 1 ? "s" : ""}.`);
   }
 };
-function decodeFilenameFromUrl(url) {
-  try {
-    const parsed = new URL(url);
-    const pathParts = parsed.pathname.split("/");
-    let raw = pathParts[pathParts.length - 1];
-    if (!raw)
-      return null;
-    raw = decodeURIComponent(raw);
-    raw = raw.replace(/[?#].*$/, "");
-    if (!raw || raw.length < 2)
-      return null;
-    return sanitiseFilename(raw);
-  } catch (e) {
-    return null;
-  }
-}
-function sanitiseFilename(filename) {
-  return filename.replace(/[/\\:*?"<>|]/g, "-").replace(/\s+/g, " ").trim();
-}

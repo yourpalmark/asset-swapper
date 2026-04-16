@@ -1,0 +1,55 @@
+/**
+ * Pure utility functions with no Obsidian dependency.
+ * Imported by main.ts and tested directly in tests/.
+ */
+
+/**
+ * Replaces markdown image/link URLs with Obsidian wikilinks for any URL
+ * whose decoded filename exists in localFiles. Unmatched links are unchanged.
+ */
+export function swapUrlsInContent(
+  content: string,
+  localFiles: Map<string, unknown>
+): { newContent: string; swapCount: number } {
+  let swapCount = 0;
+  const newContent = content.replace(
+    /!?\[[^\]]*\]\(([^)]+)\)/g,
+    (match, url: string) => {
+      const filename = decodeFilenameFromUrl(url.trim());
+      if (!filename || !localFiles.has(filename)) return match;
+      swapCount++;
+      return `![[${filename}]]`;
+    }
+  );
+  return { newContent, swapCount };
+}
+
+/**
+ * Extracts and URL-decodes the filename from the last path segment of a URL.
+ * Returns null if the URL is not parseable or has no usable filename.
+ * Mirrors the logic in Asset Clipper's lib/utils.js.
+ */
+export function decodeFilenameFromUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const pathParts = parsed.pathname.split('/');
+    let raw = pathParts[pathParts.length - 1];
+    if (!raw) return null;
+
+    raw = decodeURIComponent(raw);
+    raw = raw.replace(/[?#].*$/, '');
+
+    if (!raw || raw.length < 2) return null;
+
+    return sanitiseFilename(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function sanitiseFilename(filename: string): string {
+  return filename
+    .replace(/[/\\:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
