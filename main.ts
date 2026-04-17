@@ -1,5 +1,5 @@
 import { Editor, MarkdownView, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { swapUrlsInContent } from './utils';
+import { swapUrlsInContent, normalizeTitleForComparison } from './utils';
 
 export default class AssetSwapperPlugin extends Plugin {
   async onload() {
@@ -20,11 +20,15 @@ export default class AssetSwapperPlugin extends Plugin {
     }
 
     const noteName = file.basename;
+    const normalizedNoteName = normalizeTitleForComparison(noteName);
 
-    // Search the vault for a folder whose name exactly matches the note name
+    // Search the vault for a folder whose normalized name matches the note name.
+    // Normalization strips chars that Asset Clipper removes from folder names
+    // (e.g. / : # |) and collapses whitespace, so titles like "My Page / Title"
+    // match a folder named "My Page Title".
     const matchedFolder = this.app.vault
       .getAllLoadedFiles()
-      .find((f): f is TFolder => f instanceof TFolder && f.name === noteName);
+      .find((f): f is TFolder => f instanceof TFolder && normalizeTitleForComparison(f.name) === normalizedNoteName);
 
     if (!matchedFolder) {
       new Notice(`Asset Swapper: no folder found matching "${noteName}".`);

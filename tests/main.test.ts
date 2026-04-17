@@ -1,4 +1,4 @@
-import { decodeFilenameFromUrl, sanitiseFilename, swapUrlsInContent } from '../utils';
+import { decodeFilenameFromUrl, normalizeTitleForComparison, sanitiseFilename, swapUrlsInContent } from '../utils';
 
 // ---------------------------------------------------------------------------
 // decodeFilenameFromUrl
@@ -73,6 +73,38 @@ describe('sanitiseFilename', () => {
 
   test('leaves normal filenames unchanged', () => {
     expect(sanitiseFilename('diagram-v2.png')).toBe('diagram-v2.png');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// normalizeTitleForComparison
+// ---------------------------------------------------------------------------
+
+describe('normalizeTitleForComparison', () => {
+  test('strips forward slash and collapses surrounding spaces', () => {
+    expect(normalizeTitleForComparison('My Page / Title')).toBe('My Page Title');
+  });
+
+  test('strips colon', () => {
+    expect(normalizeTitleForComparison('Title: Subtitle')).toBe('Title Subtitle');
+  });
+
+  test('strips Obsidian chars: # | ^ [ ]', () => {
+    expect(normalizeTitleForComparison('Title #1 | [tag] ^up')).toBe('Title 1 tag up');
+  });
+
+  test('note name with slash matches folder name without slash', () => {
+    const noteName = 'My Page / Title';
+    const folderName = 'My Page Title';
+    expect(normalizeTitleForComparison(noteName)).toBe(normalizeTitleForComparison(folderName));
+  });
+
+  test('leaves a normal title unchanged', () => {
+    expect(normalizeTitleForComparison('My Project Overview')).toBe('My Project Overview');
+  });
+
+  test('trims leading and trailing whitespace', () => {
+    expect(normalizeTitleForComparison('  padded  ')).toBe('padded');
   });
 });
 

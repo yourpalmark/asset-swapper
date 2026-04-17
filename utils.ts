@@ -53,3 +53,17 @@ export function sanitiseFilename(filename: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+/**
+ * Normalizes a title for folder-matching purposes.
+ * Strips the same characters that Asset Clipper's sanitiseTitle removes when
+ * creating a folder name (/ : # | ^ [ ] and control characters), then
+ * collapses whitespace. This lets a note title like "My Page / Title" match
+ * a folder named "My Page Title".
+ */
+export function normalizeTitleForComparison(title: string): string {
+  return title
+    .replace(/[#|^[\]/:\x00-\x1F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
