@@ -54,13 +54,15 @@ cd /path/to/your/vault/.obsidian/plugins/asset-swapper
 git pull
 ```
 
-Then in Obsidian: **Settings → Community plugins → disable and re-enable Asset Swapper**.
+Then in Obsidian:
+1. **Settings → Community plugins → Reload plugins** (the refresh icon)
+2. Toggle **Asset Swapper** off, then back on
 
 ### Option B — Copy the built files into your vault
 
 1. Clone or download this repository anywhere on your machine
 2. Copy the `asset-swapper` folder into your vault's `.obsidian/plugins/` directory
-3. In Obsidian: **Settings → Community plugins → reload plugins**
+3. In Obsidian: **Settings → Community plugins → Reload plugins**, then toggle **Asset Swapper** off and back on
 
 To update, repeat steps 1–3 with the latest code.
 
@@ -68,7 +70,7 @@ To update, repeat steps 1–3 with the latest code.
 
 Enable **Asset Swapper** in **Settings → Community plugins**.
 
-After that, a `git pull` (Option A) or copying updated files (Option B) followed by reloading the plugin in Obsidian is all that's needed.
+After that, a `git pull` (Option A) or copying updated files (Option B), followed by reloading plugins and toggling Asset Swapper off and back on, is all that's needed.
 
 ---
 
