@@ -64,9 +64,11 @@ Then in Obsidian: **Settings → Community plugins → disable and re-enable Ass
 
 To update, repeat steps 1–3 with the latest code.
 
-### Final step (both options)
+### Final step (first install only)
 
 Enable **Asset Swapper** in **Settings → Community plugins**.
+
+After that, a `git pull` (Option A) or copying updated files (Option B) followed by reloading the plugin in Obsidian is all that's needed.
 
 ---
 
