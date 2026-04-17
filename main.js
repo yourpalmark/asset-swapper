@@ -58,6 +58,9 @@ function decodeFilenameFromUrl(url) {
 function sanitiseFilename(filename) {
   return filename.replace(/[/\\:*?"<>|]/g, "-").replace(/\s+/g, " ").trim();
 }
+function normalizeTitleForComparison(title) {
+  return title.replace(/[#|^[\]/:\x00-\x1F]/g, " ").replace(/\s+/g, " ").trim();
+}
 
 // main.ts
 var AssetSwapperPlugin = class extends import_obsidian.Plugin {
@@ -77,7 +80,8 @@ var AssetSwapperPlugin = class extends import_obsidian.Plugin {
       return;
     }
     const noteName = file.basename;
-    const matchedFolder = this.app.vault.getAllLoadedFiles().find((f) => f instanceof import_obsidian.TFolder && f.name === noteName);
+    const normalizedNoteName = normalizeTitleForComparison(noteName);
+    const matchedFolder = this.app.vault.getAllLoadedFiles().find((f) => f instanceof import_obsidian.TFolder && normalizeTitleForComparison(f.name) === normalizedNoteName);
     if (!matchedFolder) {
       new import_obsidian.Notice(`Asset Swapper: no folder found matching "${noteName}".`);
       return;
