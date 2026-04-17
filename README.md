@@ -45,9 +45,6 @@ This plugin is not yet published to the Obsidian Community Plugins directory. To
 ```bash
 cd /path/to/your/vault/.obsidian/plugins
 git clone https://github.com/yourpalmark/asset-swapper
-cd asset-swapper
-npm install
-npm run build
 ```
 
 To update later:
@@ -55,8 +52,6 @@ To update later:
 ```bash
 cd /path/to/your/vault/.obsidian/plugins/asset-swapper
 git pull
-npm install
-npm run build
 ```
 
 Then in Obsidian: **Settings → Community plugins → disable and re-enable Asset Swapper**.
@@ -64,11 +59,10 @@ Then in Obsidian: **Settings → Community plugins → disable and re-enable Ass
 ### Option B — Copy the built files into your vault
 
 1. Clone or download this repository anywhere on your machine
-2. Run `npm install` then `npm run build` inside the repo folder
-3. Copy the `asset-swapper` folder into your vault's `.obsidian/plugins/` directory
-4. In Obsidian: **Settings → Community plugins → reload plugins**
+2. Copy the `asset-swapper` folder into your vault's `.obsidian/plugins/` directory
+3. In Obsidian: **Settings → Community plugins → reload plugins**
 
-To update, repeat steps 1–4 with the latest code.
+To update, repeat steps 1–3 with the latest code.
 
 ### Final step (both options)
 
