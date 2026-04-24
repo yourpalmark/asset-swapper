@@ -40,20 +40,24 @@ function swapUrlsInContent(content, localFiles) {
   return { newContent, swapCount };
 }
 function decodeFilenameFromUrl(url) {
+  let pathname;
   try {
-    const parsed = new URL(url);
-    const pathParts = parsed.pathname.split("/");
-    let raw = pathParts[pathParts.length - 1];
-    if (!raw)
-      return null;
-    raw = decodeURIComponent(raw);
-    raw = raw.replace(/[?#].*$/, "");
-    if (!raw || raw.length < 2)
-      return null;
-    return sanitiseFilename(raw);
+    pathname = new URL(url).pathname;
   } catch (e) {
-    return null;
+    pathname = url.replace(/[?#].*$/, "");
   }
+  const pathParts = pathname.split("/");
+  let raw = pathParts[pathParts.length - 1];
+  if (!raw)
+    return null;
+  try {
+    raw = decodeURIComponent(raw);
+  } catch (e) {
+  }
+  raw = raw.replace(/[?#].*$/, "");
+  if (!raw || raw.length < 2)
+    return null;
+  return sanitiseFilename(raw);
 }
 function sanitiseFilename(filename) {
   return filename.replace(/[/\\:*?"<>|]/g, "-").replace(/\s+/g, " ").trim();

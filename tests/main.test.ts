@@ -36,8 +36,17 @@ describe('decodeFilenameFromUrl', () => {
     expect(decodeFilenameFromUrl('https://example.com/a')).toBeNull();
   });
 
-  test('returns null for an invalid URL string', () => {
-    expect(decodeFilenameFromUrl('not a url')).toBeNull();
+  test('returns null for a path ending in a slash (no filename)', () => {
+    expect(decodeFilenameFromUrl('https://example.com/path/')).toBeNull();
+  });
+
+  test('handles a root-relative Confluence attachment URL', () => {
+    const url = '/download/attachments/3290412694/Screenshot%202026-03-26%20at%202.21.18%E2%80%AFPM.png?version=1&modificationDate=1774515108947&api=v2';
+    expect(decodeFilenameFromUrl(url)).toBe('Screenshot 2026-03-26 at 2.21.18 PM.png');
+  });
+
+  test('handles a relative path without query string', () => {
+    expect(decodeFilenameFromUrl('/images/photo.png')).toBe('photo.png');
   });
 
   test('returns null for an empty string', () => {

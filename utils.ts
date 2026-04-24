@@ -26,25 +26,34 @@ export function swapUrlsInContent(
 
 /**
  * Extracts and URL-decodes the filename from the last path segment of a URL.
- * Returns null if the URL is not parseable or has no usable filename.
+ * Handles both absolute URLs (https://...) and relative paths (/path/to/file).
+ * Returns null if no usable filename can be extracted.
  * Mirrors the logic in Asset Clipper's lib/utils.js.
  */
 export function decodeFilenameFromUrl(url: string): string | null {
+  let pathname: string;
+
   try {
-    const parsed = new URL(url);
-    const pathParts = parsed.pathname.split('/');
-    let raw = pathParts[pathParts.length - 1];
-    if (!raw) return null;
-
-    raw = decodeURIComponent(raw);
-    raw = raw.replace(/[?#].*$/, '');
-
-    if (!raw || raw.length < 2) return null;
-
-    return sanitiseFilename(raw);
+    pathname = new URL(url).pathname;
   } catch {
-    return null;
+    // Relative URL — strip query string and fragment manually
+    pathname = url.replace(/[?#].*$/, '');
   }
+
+  const pathParts = pathname.split('/');
+  let raw = pathParts[pathParts.length - 1];
+  if (!raw) return null;
+
+  try {
+    raw = decodeURIComponent(raw);
+  } catch {
+    // malformed percent-encoding — use as-is
+  }
+  raw = raw.replace(/[?#].*$/, '');
+
+  if (!raw || raw.length < 2) return null;
+
+  return sanitiseFilename(raw);
 }
 
 export function sanitiseFilename(filename: string): string {
