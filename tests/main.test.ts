@@ -220,4 +220,88 @@ describe('swapUrlsInContent', () => {
     expect(newContent).toBe(content);
     expect(swapCount).toBe(0);
   });
+
+  // HTML <img> tag tests (Confluence table exports)
+  test('replaces HTML img tag with no extra attributes', () => {
+    const content = '<img src="https://example.com/photo.png">';
+    const localFiles = makeLocalFiles('photo.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('![[photo.png]]');
+    expect(swapCount).toBe(1);
+  });
+
+  test('replaces HTML img tag with attributes before src', () => {
+    const content = '<img alt="diagram" class="confluence-image" src="https://example.com/diagram.png">';
+    const localFiles = makeLocalFiles('diagram.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('![[diagram.png]]');
+    expect(swapCount).toBe(1);
+  });
+
+  test('replaces HTML img tag with attributes after src', () => {
+    const content = '<img src="https://example.com/chart.png" alt="chart" class="inline">';
+    const localFiles = makeLocalFiles('chart.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('![[chart.png]]');
+    expect(swapCount).toBe(1);
+  });
+
+  test('preserves width attribute as Obsidian size suffix', () => {
+    const content = '<img src="https://example.com/screenshot.png" width="393">';
+    const localFiles = makeLocalFiles('screenshot.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('![[screenshot.png|393]]');
+    expect(swapCount).toBe(1);
+  });
+
+  test('preserves width when it appears before src', () => {
+    const content = '<img width="800" src="https://example.com/wide.png" alt="wide">';
+    const localFiles = makeLocalFiles('wide.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('![[wide.png|800]]');
+    expect(swapCount).toBe(1);
+  });
+
+  test('ignores height-only attribute (no width suffix)', () => {
+    const content = '<img src="https://example.com/tall.png" height="200">';
+    const localFiles = makeLocalFiles('tall.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('![[tall.png]]');
+    expect(swapCount).toBe(1);
+  });
+
+  test('leaves HTML img tag unchanged when filename not in localFiles', () => {
+    const content = '<img src="https://example.com/remote.png">';
+    const localFiles = makeLocalFiles('other.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe(content);
+    expect(swapCount).toBe(0);
+  });
+
+  test('handles HTML img with single-quoted src', () => {
+    const content = "<img src='https://example.com/photo.png'>";
+    const localFiles = makeLocalFiles('photo.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('![[photo.png]]');
+    expect(swapCount).toBe(1);
+  });
+
+  test('replaces HTML img tags inside a table cell', () => {
+    const content = '<td><img src="https://confluence.example.com/download/attachments/123/Architecture%20Diagram.png?version=1&api=v2" width="393"></td>';
+    const localFiles = makeLocalFiles('Architecture Diagram.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('<td>![[Architecture Diagram.png|393]]</td>');
+    expect(swapCount).toBe(1);
+  });
+
+  test('handles mix of markdown and HTML img in same content', () => {
+    const content = [
+      '![md](https://example.com/a.png)',
+      '<img src="https://example.com/b.png" width="200">',
+    ].join('\n');
+    const localFiles = makeLocalFiles('a.png', 'b.png');
+    const { newContent, swapCount } = swapUrlsInContent(content, localFiles);
+    expect(newContent).toBe('![[a.png]]\n![[b.png|200]]');
+    expect(swapCount).toBe(2);
+  });
 });

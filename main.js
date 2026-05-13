@@ -27,17 +27,27 @@ var import_obsidian = require("obsidian");
 // utils.ts
 function swapUrlsInContent(content, localFiles) {
   let swapCount = 0;
-  const newContent = content.replace(
+  let result = content.replace(
     /!?\[[^\]]*\]\(([^)]+)\)/g,
     (match, url) => {
       const filename = decodeFilenameFromUrl(url.trim());
-      if (!filename || !localFiles.has(filename))
-        return match;
+      if (!filename || !localFiles.has(filename)) return match;
       swapCount++;
       return `![[${filename}]]`;
     }
   );
-  return { newContent, swapCount };
+  result = result.replace(
+    /<img\b[^>]*?\bsrc=["']([^"']+)["'][^>]*?\/?>/gi,
+    (match, url) => {
+      const filename = decodeFilenameFromUrl(url.trim());
+      if (!filename || !localFiles.has(filename)) return match;
+      swapCount++;
+      const widthMatch = match.match(/\bwidth=["'](\d+)["']/i);
+      const suffix = widthMatch ? `|${widthMatch[1]}` : "";
+      return `![[${filename}${suffix}]]`;
+    }
+  );
+  return { newContent: result, swapCount };
 }
 function decodeFilenameFromUrl(url) {
   let pathname;
@@ -48,15 +58,13 @@ function decodeFilenameFromUrl(url) {
   }
   const pathParts = pathname.split("/");
   let raw = pathParts[pathParts.length - 1];
-  if (!raw)
-    return null;
+  if (!raw) return null;
   try {
     raw = decodeURIComponent(raw);
   } catch (e) {
   }
   raw = raw.replace(/[?#].*$/, "");
-  if (!raw || raw.length < 2)
-    return null;
+  if (!raw || raw.length < 2) return null;
   return sanitiseFilename(raw);
 }
 function sanitiseFilename(filename) {

@@ -6,13 +6,19 @@
 /**
  * Replaces markdown image/link URLs with Obsidian wikilinks for any URL
  * whose decoded filename exists in localFiles. Unmatched links are unchanged.
+ *
+ * Two passes:
+ *  1. Markdown syntax:  ![alt](url)  or  [text](url)
+ *  2. HTML img tags:    <img src="url">  (any attribute order; preserves width)
  */
 export function swapUrlsInContent(
   content: string,
   localFiles: Map<string, unknown>
 ): { newContent: string; swapCount: number } {
   let swapCount = 0;
-  const newContent = content.replace(
+
+  // Pass 1: markdown image/link syntax
+  let result = content.replace(
     /!?\[[^\]]*\]\(([^)]+)\)/g,
     (match, url: string) => {
       const filename = decodeFilenameFromUrl(url.trim());
@@ -21,7 +27,22 @@ export function swapUrlsInContent(
       return `![[${filename}]]`;
     }
   );
-  return { newContent, swapCount };
+
+  // Pass 2: HTML <img> tags — attribute order agnostic, single or double quotes
+  result = result.replace(
+    /<img\b[^>]*?\bsrc=["']([^"']+)["'][^>]*?\/?>/gi,
+    (match, url: string) => {
+      const filename = decodeFilenameFromUrl(url.trim());
+      if (!filename || !localFiles.has(filename)) return match;
+      swapCount++;
+      // Preserve explicit pixel width if present (e.g. width="393" → ![[file.png|393]])
+      const widthMatch = match.match(/\bwidth=["'](\d+)["']/i);
+      const suffix = widthMatch ? `|${widthMatch[1]}` : '';
+      return `![[${filename}${suffix}]]`;
+    }
+  );
+
+  return { newContent: result, swapCount };
 }
 
 /**
